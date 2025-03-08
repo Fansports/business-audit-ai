@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from fpdf import FPDF
 
 def score_website_marketing(update_frequency, lead_methods, marketing_effectiveness, seo_score):
     update_scores = {"Weekly": 10, "Monthly": 8, "Every few months": 5, "Rarely/Never": 2, "Other": 4}
@@ -33,23 +34,32 @@ def score_operational_management(performance_tracking, operational_challenges, e
 
     return tracking_score + (10 - challenges_penalty) + efficiency_score
 
+def generate_pdf_report(total_score, performance_tier):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", style='B', size=16)
+    pdf.cell(200, 10, "Business Audit Report", ln=True, align='C')
+    pdf.ln(10)
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, f"Total Score: {total_score}/100", ln=True)
+    pdf.cell(200, 10, f"Performance Tier: {performance_tier}", ln=True)
+    pdf.ln(10)
+    pdf.cell(200, 10, "For detailed recommendations, schedule a consultation.", ln=True)
+    return pdf
+
 def main():
     st.title("Business Audit Report Generator")
 
-    # Website & Marketing
+    # User inputs
     update_frequency = st.selectbox("How frequently do you update your website?", ["Weekly", "Monthly", "Every few months", "Rarely/Never", "Other"])
     lead_methods = st.multiselect("How do you generate leads?", ["SEO / Organic Traffic", "Paid Ads (Google, Facebook, etc.)", "Social Media Engagement", "Email Marketing", "Word-of-mouth / Referrals", "Other"])
     marketing_effectiveness = st.selectbox("How effective is your marketing?", ["Very effective", "Somewhat effective", "Neutral", "Not very effective", "Not effective at all"])
     seo_score = st.selectbox("How would you rate your SEO & digital presence?", ["Excellent", "Good", "Average", "Poor"])
-
-    # AI & Automation
     ai_marketing = st.selectbox("Are you using AI in marketing?", ["Yes, extensively", "Yes, but only in specific areas", "No, but I’m interested", "No, not applicable"])
     ai_tools = st.multiselect("Which AI-powered tools do you use?", ["AI chatbots for customer service", "AI-driven content generation", "AI-powered analytics & insights", "AI-based SEO tools", "AI-driven advertising optimization", "Not using AI", "Other"])
     ai_operations = st.selectbox("Are you using AI automation in operations?", ["Yes, extensively", "Yes, but only in specific areas", "No, but interested", "No, not applicable"])
-
-    # Operational Management
     performance_tracking = st.selectbox("How do you track business performance?", ["Business intelligence dashboards", "CRM", "Spreadsheets / Manual tracking", "Not tracking performance data"])
-    operational_challenges = st.multiselect("What are your biggest operational challenges? (Choose up to 3)", ["Inefficient workflows", "Customer retention issues", "High acquisition costs", "Lack of automation", "Lack of data-driven decision-making", "Employee productivity & training", "Other"])
+    operational_challenges = st.multiselect("What are your biggest operational challenges?", ["Inefficient workflows", "Customer retention issues", "High acquisition costs", "Lack of automation", "Lack of data-driven decision-making", "Employee productivity & training", "Other"])
     efficiency_score = st.selectbox("How efficient are your processes?", ["Excellent", "Good", "Average", "Poor"])
 
     if st.button("Generate Report"):
@@ -71,6 +81,12 @@ def main():
         st.subheader("Audit Results")
         st.write(f"**Total Score:** {total_score}/100")
         st.write(f"**Performance Tier:** {performance_tier}")
+
+        # Generate PDF report
+        pdf = generate_pdf_report(total_score, performance_tier)
+        pdf.output("business_audit_report.pdf")
+        with open("business_audit_report.pdf", "rb") as file:
+            st.download_button("Download Report", file, file_name="Business_Audit_Report.pdf")
 
 if __name__ == "__main__":
     main()
