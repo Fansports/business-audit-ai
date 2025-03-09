@@ -39,31 +39,37 @@ def generate_pdf_report(total_score, performance_tier, email, name, business, in
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", style='B', size=16)
-    pdf.cell(200, 10, "Business Audit Report", ln=True, align='C')
+    
+    def safe_text(text):
+        """Ensure text is encoded in a PDF-safe format (latin-1)."""
+        return text.encode("latin-1", "replace").decode("latin-1")
+    
+    pdf.cell(200, 10, safe_text("Business Audit Report"), ln=True, align='C')
     pdf.ln(10)
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, f"Total Score: {total_score}/100", ln=True)
-    pdf.cell(200, 10, f"Performance Tier: {performance_tier}", ln=True)
+    pdf.cell(200, 10, safe_text(f"Total Score: {total_score}/100"), ln=True)
+    pdf.cell(200, 10, safe_text(f"Performance Tier: {performance_tier}"), ln=True)
     pdf.ln(10)
     
-    pdf.cell(200, 10, f"Business Email: {email}", ln=True)
+    pdf.cell(200, 10, safe_text(f"Business Email: {email}"), ln=True)
     if name:
-        pdf.cell(200, 10, f"Name: {name}", ln=True)
+        pdf.cell(200, 10, safe_text(f"Name: {name}"), ln=True)
     if business:
-        pdf.cell(200, 10, f"Business: {business}", ln=True)
+        pdf.cell(200, 10, safe_text(f"Business: {business}"), ln=True)
     if industry:
-        pdf.cell(200, 10, f"Industry: {industry}", ln=True)
+        pdf.cell(200, 10, safe_text(f"Industry: {industry}"), ln=True)
     if website:
-        pdf.cell(200, 10, f"Website: {website}", ln=True)
+        pdf.cell(200, 10, safe_text(f"Website: {website}"), ln=True)
     
     pdf.ln(10)
-    pdf.cell(200, 10, "Recommendations:", ln=True)
+    pdf.cell(200, 10, safe_text("Recommendations:"), ln=True)
     pdf.ln(5)
+
     for rec in recommendations:
-        pdf.multi_cell(0, 10, rec)
+        pdf.multi_cell(0, 10, safe_text(rec))
         pdf.ln(5)
     
-    pdf.cell(200, 10, "For detailed recommendations, schedule a consultation.", ln=True)
+    pdf.cell(200, 10, safe_text("For detailed recommendations, schedule a consultation."), ln=True)
     return pdf
 
 def main():
