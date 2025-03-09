@@ -21,27 +21,21 @@ def score_website_marketing(update_frequency, lead_methods, marketing_effectiven
 
     return update_score + lead_score + marketing_score + seo_score
 
-def score_ai_automation(ai_marketing, ai_tools, ai_operations):
-    ai_marketing_scores = {"Yes, extensively": 10, "Yes, but only in specific areas": 7, "No, but I’m interested": 5, "No, not applicable": 2}
-    ai_operations_scores = {"Yes, extensively": 10, "Yes, but only in specific areas": 7, "No, but interested": 5, "No, not applicable": 2}
+def generate_recommendations(update_frequency, lead_methods, marketing_effectiveness, seo_score, ai_marketing, ai_tools, ai_operations, performance_tracking):
+    recommendations = []
 
-    ai_marketing_score = ai_marketing_scores.get(ai_marketing, 0)
-    ai_tools_score = min(len(ai_tools) * 2, 10)
-    ai_operations_score = ai_operations_scores.get(ai_operations, 0)
+    if seo_score == "Poor":
+        recommendations.append("Your SEO presence is lacking. Consider using tools like SEMrush, Ahrefs, or Google Search Console to optimize your website for better search engine ranking.")
+    if "Social Media Engagement" not in lead_methods:
+        recommendations.append("You're not leveraging social media. AI tools like Hootsuite or Buffer can help automate and optimize your social media marketing.")
+    if ai_marketing in ["No, but I’m interested", "No, not applicable"]:
+        recommendations.append("You’re not currently using AI in marketing. Tools like ChatGPT for content creation, Adzooma for AI-driven ads, and HubSpot’s AI analytics could improve efficiency.")
+    if performance_tracking == "Not tracking performance data":
+        recommendations.append("You're not tracking performance data. Consider adopting a CRM like HubSpot or Salesforce to streamline and monitor key business metrics.")
 
-    return ai_marketing_score + ai_tools_score + ai_operations_score
+    return recommendations
 
-def score_operational_management(performance_tracking, operational_challenges, efficiency_score):
-    tracking_scores = {"Business intelligence dashboards": 10, "CRM": 8, "Spreadsheets / Manual tracking": 5, "Not tracking performance data": 0}
-    efficiency_scores = {"Excellent": 10, "Good": 7, "Average": 5, "Poor": 2}
-
-    tracking_score = tracking_scores.get(performance_tracking, 0)
-    challenges_penalty = min(len(operational_challenges) * 2, 6)
-    efficiency_score = efficiency_scores.get(efficiency_score, 0)
-
-    return tracking_score + (10 - challenges_penalty) + efficiency_score
-
-def generate_pdf_report(total_score, performance_tier, email, name, business, industry, website):
+def generate_pdf_report(total_score, performance_tier, email, name, business, industry, website, recommendations):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", style='B', size=16)
@@ -63,6 +57,12 @@ def generate_pdf_report(total_score, performance_tier, email, name, business, in
         pdf.cell(200, 10, f"Website: {website}", ln=True)
     
     pdf.ln(10)
+    pdf.cell(200, 10, "Recommendations:", ln=True)
+    pdf.ln(5)
+    for rec in recommendations:
+        pdf.multi_cell(0, 10, rec)
+        pdf.ln(5)
+    
     pdf.cell(200, 10, "For detailed recommendations, schedule a consultation.", ln=True)
     return pdf
 
@@ -81,39 +81,29 @@ def main():
         return
 
     # User inputs
-    update_frequency = st.selectbox("How frequently do you update your website?", ["", "Weekly", "Monthly", "Every few months", "Rarely/Never", "Other"])
-    lead_methods = st.multiselect("How do you generate leads?", [])
-    marketing_effectiveness = st.selectbox("How effective is your marketing?", ["", "Very effective", "Somewhat effective", "Neutral", "Not very effective", "Not effective at all"])
-    seo_score = st.selectbox("How would you rate your SEO & digital presence?", ["", "Excellent", "Good", "Average", "Poor"])
-    ai_marketing = st.selectbox("Are you using AI in marketing?", ["", "Yes, extensively", "Yes, but only in specific areas", "No, but I’m interested", "No, not applicable"])
-    ai_tools = st.multiselect("Which AI-powered tools do you use?", [])
-    ai_operations = st.selectbox("Are you using AI automation in operations?", ["", "Yes, extensively", "Yes, but only in specific areas", "No, but interested", "No, not applicable"])
-    performance_tracking = st.selectbox("How do you track business performance?", ["", "Business intelligence dashboards", "CRM", "Spreadsheets / Manual tracking", "Not tracking performance data"])
-    operational_challenges = st.multiselect("What are your biggest operational challenges? (Choose up to 3)", [])
-    efficiency_score = st.selectbox("How efficient are your processes?", ["", "Excellent", "Good", "Average", "Poor"])
-
+    update_frequency = st.selectbox("How frequently do you update your website?", ["Weekly", "Monthly", "Every few months", "Rarely/Never", "Other"])
+    lead_methods = st.multiselect("How do you generate leads?", ["SEO / Organic Traffic", "Paid Ads (Google, Facebook, etc.)", "Social Media Engagement", "Email Marketing", "Word-of-mouth / Referrals", "Other"])
+    marketing_effectiveness = st.selectbox("How effective is your marketing?", ["Very effective", "Somewhat effective", "Neutral", "Not very effective", "Not effective at all"])
+    seo_score = st.selectbox("How would you rate your SEO & digital presence?", ["Excellent", "Good", "Average", "Poor"])
+    ai_marketing = st.selectbox("Are you using AI in marketing?", ["Yes, extensively", "Yes, but only in specific areas", "No, but I’m interested", "No, not applicable"])
+    ai_tools = st.multiselect("Which AI-powered tools do you use?", ["AI chatbots for customer service", "AI-driven content generation", "AI-powered analytics & insights", "AI-based SEO tools", "AI-driven advertising optimization", "Not using AI", "Other"])
+    ai_operations = st.selectbox("Are you using AI automation in operations?", ["Yes, extensively", "Yes, but only in specific areas", "No, but interested", "No, not applicable"])
+    performance_tracking = st.selectbox("How do you track business performance?", ["Business intelligence dashboards", "CRM", "Spreadsheets / Manual tracking", "Not tracking performance data"])
+    
     if st.button("Generate Report"):
-        website_marketing_score = score_website_marketing(update_frequency, lead_methods, marketing_effectiveness, seo_score)
-        ai_automation_score = score_ai_automation(ai_marketing, ai_tools, ai_operations)
-        operational_management_score = score_operational_management(performance_tracking, operational_challenges, efficiency_score)
-
-        total_score = website_marketing_score + ai_automation_score + operational_management_score
-
-        if total_score >= 85:
-            performance_tier = "Strong Performer"
-        elif total_score >= 70:
-            performance_tier = "Moderate Performer"
-        elif total_score >= 50:
-            performance_tier = "Needs Improvement"
-        else:
-            performance_tier = "At Risk"
+        total_score = score_website_marketing(update_frequency, lead_methods, marketing_effectiveness, seo_score)
+        performance_tier = "Moderate Performer" if total_score >= 70 else "Needs Improvement"
+        recommendations = generate_recommendations(update_frequency, lead_methods, marketing_effectiveness, seo_score, ai_marketing, ai_tools, ai_operations, performance_tracking)
 
         st.subheader("Audit Results")
         st.write(f"**Total Score:** {total_score}/100")
         st.write(f"**Performance Tier:** {performance_tier}")
+        st.subheader("Recommendations")
+        for rec in recommendations:
+            st.write(f"- {rec}")
 
         # Generate PDF report
-        pdf = generate_pdf_report(total_score, performance_tier, email, name, business, industry, website)
+        pdf = generate_pdf_report(total_score, performance_tier, email, name, business, industry, website, recommendations)
         pdf.output("business_audit_report.pdf")
         with open("business_audit_report.pdf", "rb") as file:
             st.download_button("Download Report", file, file_name="Business_Audit_Report.pdf")
